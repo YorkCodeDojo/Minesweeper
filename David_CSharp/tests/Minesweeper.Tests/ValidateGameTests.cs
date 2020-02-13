@@ -88,7 +88,7 @@ namespace Minesweeper.Tests
                 }
             }
 
-            return new Game(initialState);
+            return new Game(initialState, Game.ExpectedMineCountNotSpecified);
 
         }
     }

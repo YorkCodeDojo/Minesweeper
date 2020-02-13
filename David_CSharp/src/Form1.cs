@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Minesweeper
@@ -31,11 +25,31 @@ namespace Minesweeper
             solveButton.Click += SolveButton_Click;
             this.Controls.Add(solveButton);
 
+
+            var bruteForceButton = new Button
+            {
+                Text = "Brute Force",
+                Location = new Point(100, 0),
+            };
+
+            bruteForceButton.Click += BruteForceButton_Click;
+            this.Controls.Add(bruteForceButton);
+
             var gameLoader = new LoadGameFromFile();
             _game = gameLoader.Load("ComplexGame.txt").GetAwaiter().GetResult();
             _gameDrawer = new GameDrawer(_game);
             this.Paint += Form1_Paint;
         }
+
+        private void BruteForceButton_Click(object sender, EventArgs e)
+        {
+            _game.BruteForce();
+
+            using var g = this.CreateGraphics();
+            g.Clear(this.BackColor);
+            _gameDrawer.Draw(g);
+        }
+
 
         private void SolveButton_Click(object sender, EventArgs e)
         {

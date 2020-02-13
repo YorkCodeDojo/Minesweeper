@@ -42,8 +42,10 @@ namespace Minesweeper
 
         internal void DrawMove(Graphics g, Solution result)
         {
-
-            DrawSymbol(g, _game.CellContents(result.CellOfInterest.Column, result.CellOfInterest.Row), result.CellOfInterest.Column, result.CellOfInterest.Row, Brushes.Blue);
+            if (!result.CellOfInterest.IsUnused)
+            {
+                DrawSymbol(g, _game.CellContents(result.CellOfInterest.Column, result.CellOfInterest.Row), result.CellOfInterest.Column, result.CellOfInterest.Row, Brushes.Blue);
+            }
 
             foreach (var cell in result.SolvedCells)
             {

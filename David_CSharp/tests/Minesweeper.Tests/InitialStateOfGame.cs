@@ -10,7 +10,7 @@ namespace Minesweeper.Tests
         {
             var initialState = new char[3, 4];
             InitialiseToUnknown(initialState);
-            var game = new Game(initialState);
+            var game = new Game(initialState, Game.ExpectedMineCountNotSpecified);
 
             Assert.Equal(3, game.NumberOfColumns);
             Assert.Equal(4, game.NumberOfRows);
@@ -24,7 +24,7 @@ namespace Minesweeper.Tests
             initialState[1, 2] = '8';
             initialState[2, 3] = '1';
 
-            var game = new Game(initialState);
+            var game = new Game(initialState, Game.ExpectedMineCountNotSpecified);
 
             Assert.Equal("", game.CellContents(0, 0));
             Assert.Equal("8", game.CellContents(1, 2));
@@ -39,7 +39,7 @@ namespace Minesweeper.Tests
             initialState[1, 2] = '!';
             initialState[2, 1] = 'x';
 
-            var game = new Game(initialState);
+            var game = new Game(initialState, Game.ExpectedMineCountNotSpecified);
 
             Assert.Equal("!", game.CellContents(1, 2));
             Assert.Equal("x", game.CellContents(2, 1));

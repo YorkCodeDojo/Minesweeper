@@ -8,6 +8,9 @@ namespace Minesweeper
     {
         public int NumberOfColumns { get; private set; }
         public int NumberOfRows { get; private set; }
+        public int ExpectedMineCount { get; private set; }
+
+        public const int ExpectedMineCountNotSpecified = -1;
 
         private const int UnknownCell = -1;
         private const int Mine = -2;
@@ -15,8 +18,9 @@ namespace Minesweeper
 
         private int[,] cells;
 
-        public Game(char[,] initialState)
+        public Game(char[,] initialState, int expectedMineCount)
         {
+            ExpectedMineCount = expectedMineCount;
             NumberOfColumns = initialState.GetUpperBound(0) + 1;
             NumberOfRows = initialState.GetUpperBound(1) + 1;
 
@@ -47,6 +51,47 @@ namespace Minesweeper
 
         }
 
+        public bool BruteForce()
+        {
+            var gameValidator = new GameValidator();
+
+            var nextUnknownCell = GetNextUnknownCell();
+            if (nextUnknownCell.IsUnused) return true;
+
+            cells[nextUnknownCell.Column, nextUnknownCell.Row] = Mine;
+            if (gameValidator.Validate(this).IsValid)
+            {
+                var result = BruteForce();
+                if (result) return true;
+            }
+
+            cells[nextUnknownCell.Column, nextUnknownCell.Row] = Empty;
+            if (gameValidator.Validate(this).IsValid)
+            {
+                var result = BruteForce();
+                if (result) return true;
+            }
+
+            cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
+            return false;
+        }
+
+        private CellLocation GetNextUnknownCell()
+        {
+            for (int column = 0; column < NumberOfColumns; column++)
+            {
+                for (int row = 0; row < NumberOfRows; row++)
+                {
+                    if (cells[column, row] == UnknownCell)
+                    {
+                        return new CellLocation(column, row);
+                    }
+                }
+            }
+
+            return CellLocation.NotUsed;    
+        }
+
         public string CellContents(int column, int row)
         {
             return cells[column, row] switch
@@ -57,6 +102,7 @@ namespace Minesweeper
                 _ => cells[column, row].ToString(),
             };
         }
+
 
         public Solution Solve()
         {
@@ -71,7 +117,51 @@ namespace Minesweeper
             if (solution is null)
                 solution = Method4_CannotContainAMine();
 
+            if (solution is null)
+                solution = Method5_MineCount();
+
             return solution;
+        }
+
+        private Solution Method5_MineCount()
+        {
+            if (ExpectedMineCount != ExpectedMineCountNotSpecified)
+            {
+                var minesPlaced = FindMines().Count;
+                var remainingCells = FindUnknowns();
+                var minesRemaining = ExpectedMineCount - minesPlaced;
+
+                if (minesRemaining == 0 && remainingCells.Count > 0)
+                {
+                    foreach (var location in remainingCells)
+                    {
+                        cells[location.Column, location.Row] = Empty;
+                    }
+
+                    return new Solution
+                    {
+                        CellOfInterest = CellLocation.NotUsed,
+                        SolvedCells = remainingCells.ToArray(),
+                        Description = "All mines have been found.",
+                    };
+                }
+                else if (minesRemaining > 0 && minesRemaining == remainingCells.Count)
+                {
+                    foreach (var location in remainingCells)
+                    {
+                        cells[location.Column, location.Row] = Mine;
+                    }
+
+                    return new Solution
+                    {
+                        CellOfInterest = CellLocation.NotUsed,
+                        SolvedCells = remainingCells.ToArray(),
+                        Description = "All remaining cells must be mines.",
+                    };
+                }
+
+            }
+            return null;
         }
 
         private Solution Method3_MustContainAMine()
@@ -253,6 +343,38 @@ namespace Minesweeper
             }
 
             return null;
+        }
+
+        private List<CellLocation> FindMines()
+        {
+            var result = new List<CellLocation>();
+            for (int column = 0; column < NumberOfColumns; column++)
+            {
+                for (int row = 0; row < NumberOfRows; row++)
+                {
+                    if (cells[column, row] == Mine)
+                    {
+                        result.Add(new CellLocation(column, row));
+                    }
+                }
+            }
+            return result;
+        }
+
+        private List<CellLocation> FindUnknowns()
+        {
+            var result = new List<CellLocation>();
+            for (int column = 0; column < NumberOfColumns; column++)
+            {
+                for (int row = 0; row < NumberOfRows; row++)
+                {
+                    if (cells[column, row] == UnknownCell)
+                    {
+                        result.Add(new CellLocation(column, row));
+                    }
+                }
+            }
+            return result;
         }
 
         internal CellLocation[] NeighboursWithMines(int column, int row)

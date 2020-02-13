@@ -9,6 +9,13 @@ namespace Minesweeper
             var lines = await System.IO.File.ReadAllLinesAsync(filename).ConfigureAwait(false);
             var numberOfColumns = lines[0].Length;
             var numberOfRows = lines.Length;
+            var mineCount = Game.ExpectedMineCountNotSpecified;
+
+            if (lines[numberOfRows - 1].StartsWith("MineCount:"))
+            {
+                mineCount = int.Parse(lines[numberOfRows - 1]["MineCount:".Length..]);
+                numberOfRows--;
+            }
 
             var initialState = new char[numberOfColumns, numberOfRows];
 
@@ -20,7 +27,7 @@ namespace Minesweeper
                 }
             }
 
-            return new Game(initialState);
+            return new Game(initialState, mineCount);
         }
     }
 }
