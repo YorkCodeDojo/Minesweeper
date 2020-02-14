@@ -25,7 +25,6 @@ namespace Minesweeper
             solveButton.Click += SolveButton_Click;
             this.Controls.Add(solveButton);
 
-
             var bruteForceButton = new Button
             {
                 Text = "Brute Force",

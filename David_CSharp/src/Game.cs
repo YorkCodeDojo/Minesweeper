@@ -12,11 +12,13 @@ namespace Minesweeper
 
         public const int ExpectedMineCountNotSpecified = -1;
 
+#pragma warning disable IDE1006 // Naming Styles
         private const int UnknownCell = -1;
         private const int Mine = -2;
         private const int Empty = -3;
+#pragma warning restore IDE1006 // Naming Styles
 
-        private int[,] cells;
+        private int[,] _cells;
 
         public Game(char[,] initialState, int expectedMineCount)
         {
@@ -24,13 +26,13 @@ namespace Minesweeper
             NumberOfColumns = initialState.GetUpperBound(0) + 1;
             NumberOfRows = initialState.GetUpperBound(1) + 1;
 
-            cells = new int[NumberOfColumns, NumberOfRows];
+            _cells = new int[NumberOfColumns, NumberOfRows];
 
             for (int column = 0; column < NumberOfColumns; column++)
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    cells[column, row] = initialState[column, row] switch
+                    _cells[column, row] = initialState[column, row] switch
                     {
                         '!' => Mine,
                         'x' => Empty,
@@ -58,21 +60,21 @@ namespace Minesweeper
             var nextUnknownCell = GetNextUnknownCell();
             if (nextUnknownCell.IsUnused) return true;
 
-            cells[nextUnknownCell.Column, nextUnknownCell.Row] = Mine;
+            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Mine;
             if (gameValidator.Validate(this).IsValid)
             {
                 var result = BruteForce();
                 if (result) return true;
             }
 
-            cells[nextUnknownCell.Column, nextUnknownCell.Row] = Empty;
+            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Empty;
             if (gameValidator.Validate(this).IsValid)
             {
                 var result = BruteForce();
                 if (result) return true;
             }
 
-            cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
+            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
             return false;
         }
 
@@ -82,26 +84,27 @@ namespace Minesweeper
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    if (cells[column, row] == UnknownCell)
+                    if (_cells[column, row] == UnknownCell)
                     {
                         return new CellLocation(column, row);
                     }
                 }
             }
 
-            return CellLocation.NotUsed;    
+            return CellLocation.NotUsed;
         }
 
         public string CellContents(int column, int row)
         {
-            return cells[column, row] switch
+            return _cells[column, row] switch
             {
                 UnknownCell => "",
                 Mine => "!",
                 Empty => "x",
-                _ => cells[column, row].ToString(),
+                _ => _cells[column, row].ToString(),
             };
         }
+
 
 
         public Solution Solve()
@@ -135,7 +138,7 @@ namespace Minesweeper
                 {
                     foreach (var location in remainingCells)
                     {
-                        cells[location.Column, location.Row] = Empty;
+                        _cells[location.Column, location.Row] = Empty;
                     }
 
                     return new Solution
@@ -149,7 +152,7 @@ namespace Minesweeper
                 {
                     foreach (var location in remainingCells)
                     {
-                        cells[location.Column, location.Row] = Mine;
+                        _cells[location.Column, location.Row] = Mine;
                     }
 
                     return new Solution
@@ -171,9 +174,9 @@ namespace Minesweeper
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    if (cells[column, row] == UnknownCell)
+                    if (_cells[column, row] == UnknownCell)
                     {
-                        cells[column, row] = Empty;
+                        _cells[column, row] = Empty;
                         var movesToUnDo = new List<CellLocation>();
                         var solution = default(Solution);
                         do
@@ -191,11 +194,11 @@ namespace Minesweeper
                                 var validationResult = validator.Validate(this);
                                 if (!validationResult.IsValid)
                                 {
-                                    cells[column, row] = Mine;
+                                    _cells[column, row] = Mine;
 
                                     foreach (var moveToUndo in movesToUnDo)
                                     {
-                                        cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
+                                        _cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
                                     }
 
                                     return new Solution
@@ -210,10 +213,10 @@ namespace Minesweeper
 
                         foreach (var moveToUndo in movesToUnDo)
                         {
-                            cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
+                            _cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
                         }
 
-                        cells[column, row] = UnknownCell;
+                        _cells[column, row] = UnknownCell;
                     }
                 }
             }
@@ -228,9 +231,9 @@ namespace Minesweeper
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    if (cells[column, row] == UnknownCell)
+                    if (_cells[column, row] == UnknownCell)
                     {
-                        cells[column, row] = Mine;
+                        _cells[column, row] = Mine;
                         var movesToUnDo = new List<CellLocation>();
                         var solution = default(Solution);
                         do
@@ -248,11 +251,11 @@ namespace Minesweeper
                                 var validationResult = validator.Validate(this);
                                 if (!validationResult.IsValid)
                                 {
-                                    cells[column, row] = Empty;
+                                    _cells[column, row] = Empty;
 
                                     foreach (var moveToUndo in movesToUnDo)
                                     {
-                                        cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
+                                        _cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
                                     }
 
                                     return new Solution
@@ -267,10 +270,10 @@ namespace Minesweeper
 
                         foreach (var moveToUndo in movesToUnDo)
                         {
-                            cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
+                            _cells[moveToUndo.Column, moveToUndo.Row] = UnknownCell;
                         }
 
-                        cells[column, row] = UnknownCell;
+                        _cells[column, row] = UnknownCell;
                     }
                 }
             }
@@ -294,7 +297,7 @@ namespace Minesweeper
                         {
                             foreach (var cell in neighboursWhichAreUnknown)
                             {
-                                cells[cell.Column, cell.Row] = Empty;
+                                _cells[cell.Column, cell.Row] = Empty;
                             }
 
                             return new Solution
@@ -328,7 +331,7 @@ namespace Minesweeper
                         {
                             foreach (var cell in neighboursWhichAreUnknown)
                             {
-                                cells[cell.Column, cell.Row] = Mine;
+                                _cells[cell.Column, cell.Row] = Mine;
                             }
 
                             return new Solution
@@ -352,7 +355,7 @@ namespace Minesweeper
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    if (cells[column, row] == Mine)
+                    if (_cells[column, row] == Mine)
                     {
                         result.Add(new CellLocation(column, row));
                     }
@@ -368,7 +371,7 @@ namespace Minesweeper
             {
                 for (int row = 0; row < NumberOfRows; row++)
                 {
-                    if (cells[column, row] == UnknownCell)
+                    if (_cells[column, row] == UnknownCell)
                     {
                         result.Add(new CellLocation(column, row));
                     }
@@ -380,13 +383,13 @@ namespace Minesweeper
         internal CellLocation[] NeighboursWithMines(int column, int row)
         {
             var neighbours = GetNeighbours(column, row);
-            return neighbours.Where(cell => cells[cell.Column, cell.Row] == Mine).ToArray();
+            return neighbours.Where(cell => _cells[cell.Column, cell.Row] == Mine).ToArray();
         }
 
         internal CellLocation[] NeighboursWhichAreUnknown(int column, int row)
         {
             var neighbours = GetNeighbours(column, row);
-            return neighbours.Where(cell => cells[cell.Column, cell.Row] == UnknownCell).ToArray();
+            return neighbours.Where(cell => _cells[cell.Column, cell.Row] == UnknownCell).ToArray();
         }
 
         private List<CellLocation> GetNeighbours(int column, int row)
@@ -415,9 +418,9 @@ namespace Minesweeper
 
         internal bool TryGetMineCountForCell(int column, int row, out int mineCount)
         {
-            if (cells[column, row] >= 0)
+            if (_cells[column, row] >= 0)
             {
-                mineCount = cells[column, row];
+                mineCount = _cells[column, row];
                 return true;
             }
             else
