@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
 namespace Minesweeper
 {
@@ -7,6 +8,7 @@ namespace Minesweeper
         private const int CellSize = 50;
         private readonly Font _symbolFont = new System.Drawing.Font("Segoe UI", 24F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
         private readonly Font _infoFont = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+        private readonly Font _smallFont = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
         private readonly Pen _borderPen = new Pen(Brushes.Black, 3);
         private Game _game;
 
@@ -53,6 +55,27 @@ namespace Minesweeper
             }
 
             g.DrawString(result.Description, _infoFont, Brushes.Black, (_game.NumberOfColumns + 1) * CellSize, (result.CellOfInterest.Row * CellSize) + 20);
+
+        }
+
+        internal void DisplayProbabilities(Graphics g)
+        {
+            g.TranslateTransform(100, 100);
+
+            for (int column = 0; column < _game.NumberOfColumns; column++)
+            {
+                for (int row = 0; row < _game.NumberOfRows; row++)
+                {
+                    if (_game.CellContents(column, row) == string.Empty)
+                    {
+                        var probability = _game.CalculateProbability(column, row);
+                        var x = column * CellSize;
+                        var y = row * CellSize;
+                        g.DrawString(probability.ToString(), _smallFont, Brushes.Green, x, y);
+
+                    }
+                }
+            }
 
         }
 

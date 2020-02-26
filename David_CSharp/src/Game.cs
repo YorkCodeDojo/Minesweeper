@@ -94,6 +94,46 @@ namespace Minesweeper
             return CellLocation.NotUsed;
         }
 
+        internal decimal CalculateProbability(int column, int row)
+        {
+            /*Return a value between 0 and 1
+             * 
+             * 0 means cannot contain a mine
+             * 
+             * 0.5 means we don't know
+             * 
+             * 1 must contain a mine
+             * 
+             */
+            var total = 0.0M;
+            var number = 0;
+
+            var neighbours = GetNeighbours(column, row);
+            foreach (var neighbour in neighbours)
+            {
+                if (TryGetMineCountForCell(neighbour.Column, neighbour.Row, out var mineCount))
+                {
+                    var neighboursWithMines = NeighboursWithMines(neighbour.Column, neighbour.Row).Count();
+                    var neighboursWhichAreUnknown = NeighboursWhichAreUnknown(neighbour.Column, neighbour.Row).Count();
+                    var minesLeftToPlace = mineCount - neighboursWithMines;
+
+                    if (minesLeftToPlace == 0)
+                        return 0;
+
+                    if (minesLeftToPlace == neighboursWhichAreUnknown)
+                        return 1;
+
+                    total += minesLeftToPlace / (decimal)neighboursWhichAreUnknown;
+                    number++;
+                }
+            }
+
+            if (number == 0)
+                return 0.5M;
+            else
+                return Math.Round(total / number, 2);
+        }
+
         public string CellContents(int column, int row)
         {
             return _cells[column, row] switch

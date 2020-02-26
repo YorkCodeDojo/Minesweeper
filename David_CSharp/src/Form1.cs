@@ -34,10 +34,26 @@ namespace Minesweeper
             bruteForceButton.Click += BruteForceButton_Click;
             this.Controls.Add(bruteForceButton);
 
+            var calculateButton = new Button
+            {
+                Text = "Calculate",
+                Location = new Point(200, 0),
+                Width = 200,
+            };
+
+            calculateButton.Click += CalculateButton_Click;
+            this.Controls.Add(calculateButton);
+
             var gameLoader = new LoadGameFromFile();
             _game = gameLoader.Load("ComplexGame.txt").GetAwaiter().GetResult();
             _gameDrawer = new GameDrawer(_game);
             this.Paint += Form1_Paint;
+        }
+
+        private void CalculateButton_Click(object sender, EventArgs e)
+        {
+            using var g = this.CreateGraphics();
+            _gameDrawer.DisplayProbabilities(g);
         }
 
         private void BruteForceButton_Click(object sender, EventArgs e)
