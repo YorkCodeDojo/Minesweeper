@@ -6,8 +6,8 @@ namespace Minesweeper
 {
     public partial class Form1 : Form
     {
-        private readonly Game _game;
-        private readonly GameDrawer _gameDrawer;
+        private Game _game;
+        private GameDrawer _gameDrawer;
 
         public Form1()
         {
@@ -44,10 +44,55 @@ namespace Minesweeper
             calculateButton.Click += CalculateButton_Click;
             this.Controls.Add(calculateButton);
 
+
+            var clearButton = new Button
+            {
+                Text = "Clear",
+                Location = new Point(400, 0)
+            };
+
+            clearButton.Click += ClearButton_Click;
+            this.Controls.Add(clearButton);
+
+            var cleverBruteForceButton = new Button
+            {
+                Text = "Clever",
+                Location = new Point(500, 0)
+            };
+
+            cleverBruteForceButton.Click += CleverBruteForceButton_Click;
+            this.Controls.Add(cleverBruteForceButton);
+
+
+            LoadFile();
+            this.Paint += Form1_Paint;
+        }
+
+        private void CleverBruteForceButton_Click(object sender, EventArgs e)
+        {
+            var numberOfWrongMoves = _game.CleverBruteForce();
+
+            using var g = this.CreateGraphics();
+            g.Clear(this.BackColor);
+            _gameDrawer.Draw(g);
+
+            MessageBox.Show($"Number of wrong moves was {numberOfWrongMoves}.");
+        }
+
+        private void LoadFile()
+        {
             var gameLoader = new LoadGameFromFile();
             _game = gameLoader.Load("ComplexGame.txt").GetAwaiter().GetResult();
             _gameDrawer = new GameDrawer(_game);
-            this.Paint += Form1_Paint;
+        }
+
+        private void ClearButton_Click(object sender, EventArgs e)
+        {
+            LoadFile();
+
+            using var g = this.CreateGraphics();
+            g.Clear(this.BackColor);
+            _gameDrawer.Draw(g);
         }
 
         private void CalculateButton_Click(object sender, EventArgs e)
@@ -58,11 +103,13 @@ namespace Minesweeper
 
         private void BruteForceButton_Click(object sender, EventArgs e)
         {
-            _game.BruteForce();
+            var numberOfWrongMoves = _game.BruteForce();
 
             using var g = this.CreateGraphics();
             g.Clear(this.BackColor);
             _gameDrawer.Draw(g);
+
+            MessageBox.Show($"Number of wrong moves was {numberOfWrongMoves}.");
         }
 
 

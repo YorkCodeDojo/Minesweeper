@@ -53,30 +53,154 @@ namespace Minesweeper
 
         }
 
-        public bool BruteForce()
+        public int CleverBruteForce()
         {
-            var gameValidator = new GameValidator();
+            var numberOfWrongMoves = 0;
 
-            var nextUnknownCell = GetNextUnknownCell();
-            if (nextUnknownCell.IsUnused) return true;
-
-            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Mine;
-            if (gameValidator.Validate(this).IsValid)
+            bool Work()
             {
-                var result = BruteForce();
-                if (result) return true;
+                var gameValidator = new GameValidator();
+
+                var nextUnknownCell = GetMostLikelyUnknownCell();
+                if (nextUnknownCell.IsUnused) return true;
+
+                var probabilty = CalculateProbability(nextUnknownCell.Column, nextUnknownCell.Row);
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = probabilty > 0.5M ? Mine : Empty;
+                if (gameValidator.Validate(this).IsValid)
+                {
+                    var result = Work();
+                    if (result) return true;
+                }
+                else
+                {
+                    numberOfWrongMoves++;
+                }
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = probabilty > 0.5M ? Empty : Mine;
+                if (gameValidator.Validate(this).IsValid)
+                {
+                    var result = Work();
+                    if (result) return true;
+                }
+                else
+                {
+                    numberOfWrongMoves++;
+                }
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
+                return false;
             }
 
-            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Empty;
-            if (gameValidator.Validate(this).IsValid)
-            {
-                var result = BruteForce();
-                if (result) return true;
-            }
+            Work();
 
-            _cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
-            return false;
+            return numberOfWrongMoves;
         }
+
+        private CellLocation GetMostLikelyUnknownCell()
+        {
+            var bestProbability = 0.0M;
+            var bestLocation = CellLocation.NotUsed;
+
+            var rnd = new Random();
+
+            if (rnd.Next(0, 2) == 0)
+            {
+                for (int column = NumberOfColumns - 1; column >= 0; column--)
+                {
+                    for (int row = NumberOfRows - 1; row >= 0; row--)
+                    {
+                        if (_cells[column, row] == UnknownCell)
+                        {
+                            var probabilty = CalculateProbability(column, row);
+                            if (probabilty == 0 || probabilty == 1)
+                            {
+                                return new CellLocation(column, row);
+                            }
+
+                            probabilty = Math.Abs(probabilty - 0.5M);
+
+                            if (probabilty > (bestProbability)) // + (rnd.Next(0, 3) / 10.0M)))
+                            {
+                                bestProbability = probabilty;
+                                bestLocation = new CellLocation(column, row);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int column = 0; column < NumberOfColumns; column++)
+                {
+                    for (int row = 0; row < NumberOfRows; row++)
+                    {
+                        if (_cells[column, row] == UnknownCell)
+                        {
+                            var probabilty = CalculateProbability(column, row);
+                            if (probabilty == 0 || probabilty == 1)
+                            {
+                                return new CellLocation(column, row);
+                            }
+
+                            probabilty = Math.Abs(probabilty - 0.5M);
+
+                            if (probabilty > (bestProbability))// + (rnd.Next(0, 3) / 10.0M)))
+                            {
+                                bestProbability = probabilty;
+                                bestLocation = new CellLocation(column, row);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return bestLocation;
+        }
+
+        public int BruteForce()
+        {
+            var numberOfWrongMoves = 0;
+
+            bool Work()
+            {
+                var gameValidator = new GameValidator();
+
+                var nextUnknownCell = GetNextUnknownCell();
+                if (nextUnknownCell.IsUnused) return true;
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Mine;
+                if (gameValidator.Validate(this).IsValid)
+                {
+                    var result = Work();
+                    if (result) return true;
+                }
+                else
+                {
+                    numberOfWrongMoves++;
+                }
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = Empty;
+                if (gameValidator.Validate(this).IsValid)
+                {
+                    var result = Work();
+                    if (result) return true;
+                }
+                else
+                {
+                    numberOfWrongMoves++;
+                }
+
+                _cells[nextUnknownCell.Column, nextUnknownCell.Row] = UnknownCell;
+                return false;
+            }
+
+            Work();
+
+            return numberOfWrongMoves;
+        }
+
+
 
         private CellLocation GetNextUnknownCell()
         {
@@ -103,7 +227,6 @@ namespace Minesweeper
              * 0.5 means we don't know
              * 
              * 1 must contain a mine
-             * 
              */
             var total = 0.0M;
             var number = 0;
